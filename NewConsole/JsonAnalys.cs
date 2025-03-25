@@ -1,16 +1,11 @@
-﻿/* раздели метод на 2 метода:
-1 определяет тип вопроса
-2 работает только с вопросами вида вопрос/ответ (после 1 метода)
-*/
-using System;
+﻿using System;
 using System.Collections.Generic;
-using System.IO;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
 public class JsonAnalys
 {
-    public List<KeyValuePair<string, string>> MethodJson(string jsonString)
+    public List<Dictionary<string, string>> MethodJson(string jsonString)
     {
         // Десериализация JSON в JArray
         JArray jsonArray = JsonConvert.DeserializeObject<JArray>(jsonString);
@@ -19,13 +14,7 @@ public class JsonAnalys
         List<JObject> qaItems = DetermineQuestionType(jsonArray);
 
         // Обработка вопросов формата "вопрос/ответ"
-        List<KeyValuePair<string, string>> resultList = ProcessQAItems(qaItems);
-
-        foreach (var item in resultList)
-        {
-            Console.WriteLine($"Question: {item.Key}");
-            Console.WriteLine($"Answer: {item.Value}");
-        }
+        List<Dictionary<string, string>> resultList = ProcessQAItems(qaItems);
 
         return resultList;
     }
@@ -46,31 +35,26 @@ public class JsonAnalys
         return qaItems;
     }
 
-    public static List<KeyValuePair<string, string>> ProcessQAItems(List<JObject> qaItems)
+    public static List<Dictionary<string, string>> ProcessQAItems(List<JObject> qaItems)
     {
-        // Создание словаря для хранения пар "вопрос"/"ответ"
-        Dictionary<string, string> qaDictionary = new Dictionary<string, string>();
+        // Создание списка для хранения словарей "вопрос"/"ответ"
+        List<Dictionary<string, string>> resultList = new List<Dictionary<string, string>>();
 
-        // Заполнение словаря
+        // Заполнение списка словарями
         foreach (JObject item in qaItems)
         {
             string question = item["Question"].ToString();
             string answer = item["Answer"].ToString();
 
-            // Проверка на наличие ключа в словаре
-            if (!qaDictionary.ContainsKey(question))
+            // Создание нового словаря для каждой пары "вопрос"/"ответ"
+            Dictionary<string, string> qaDictionary = new Dictionary<string, string>
             {
-                qaDictionary.Add(question, answer);
-            }
-            else
-            {
-                // Если ключ уже существует, обновляем значение
-                qaDictionary[question] = answer;
-            }
-        }
+                { question, answer }
+            };
 
-        // Преобразование словаря в список
-        List<KeyValuePair<string, string>> resultList = new List<KeyValuePair<string, string>>(qaDictionary);
+            // Добавление словаря в список
+            resultList.Add(qaDictionary);
+        }
 
         return resultList;
     }
